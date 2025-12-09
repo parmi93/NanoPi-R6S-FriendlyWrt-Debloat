@@ -314,4 +314,4 @@ This section explains the method used to determine which packages added by Frien
    ```
 
 > [!NOTE]
-> Steps 5 and 6 must be repeated multiple times. Even after the initial removal, many remaining orphaned packages might not be automatically uninstalled (likely because they were installed manually). These packages then become new top-level candidates, so you must repeat Steps 5 and 6 until `opkgs_to_remove.txt` is empty. For FriendlyWrt 24.10.2, you'll likely need to repeat steps 5 and 6 about seven times to ensure all unnecessary packages are removed.
+> Steps 5 and 6 must be repeated multiple times. Even after the initial removal, many remaining orphaned packages might not be automatically uninstalled (likely because they were installed prior to the top-level packages and not pulled in automatically as dependencies of the top-level packages). These packages then become new top-level candidates, so you must repeat Steps 5 and 6 until `opkgs_to_remove.txt` is empty. For FriendlyWrt 24.10.2, you'll likely need to repeat steps 5 and 6 about seven times to ensure all unnecessary packages are removed.
