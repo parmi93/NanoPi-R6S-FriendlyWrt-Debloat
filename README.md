@@ -52,7 +52,7 @@ Two packages must not be uninstalled:
 ## Install some essentials `opkg`s
 
 Install two packages:
-1. `luci-compat`: This was automatically uninstalled because it became an orphan package, but it is necessary to fix the broken LuCI interface. Unlike stock OpenWrt, the FriendlyWrt LuCI environment appears to require this package to function properly.
+1. `luci-compat`: This was automatically uninstalled during cleanup because it became an orphan package, but it is necessary to fix the broken LuCI interface. Unlike stock OpenWrt, the FriendlyWrt LuCI environment appears to require this package to function properly.
 2. `dnsmasq`: This is the official package found in OpenWrt. FriendlyWrt replaced it with the full version, `dnsmasq-full` (which you just uninstalled), so by installing `dnsmasq` we revert back to the original one.
 
 ```bash
