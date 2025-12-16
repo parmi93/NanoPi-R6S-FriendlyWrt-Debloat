@@ -6,14 +6,122 @@
 > This guide is primarily written for my own future reference, in case I need to perform this procedure again.
 
 ## Comparing OpenWrt and FriendlyWrt after a clean installation
-|                                      | No. OPKGs | RAM Usage |
-|--------------------------------------|-----------|-----------|
-| OpenWrt v24.10.2                     | 128       | ~93 MiB   |
-| Friendly v24.10.2                    | 1080      | ~405 MiB  |
-| Friendly v24.10.2 <br> after debloat | 134       | ~275 MiB  |
 
+### Comparison of Memory Usage
+Comparison of the number of pre-installed packages and RAM usage after a clean installation of FriendlyWrt and OpenWrt
+|                                       | No. OPKGs | RAM Usage |
+|---------------------------------------|-----------|-----------|
+| OpenWrt v24.10.2                      | 128       | ~93 MiB   |
+| Friendly v24.10.2 <br> before debloat | 1080      | ~405 MiB  |
+| Friendly v24.10.2 <br> after debloat  | 134       | ~275 MiB  |
 
-## Switch back to the OpenWrt shell
+While the debloating process successfully reduces RAM usage by about **130 MiB** by **uninstalling 946 opkgs**, the consumption is still roughly **180 MiB higher** than OpenWrt's baseline. I believe this difference is due to the extra features baked into FriendlyWrt BSP Kernel. Specifically, FriendlyWrt supports hardware-accelerated video transcoding via the **Rockchip VPU (RKMPP)**, includes **native NTFS filesystem support**, and provides shell support via HDMI display. These, along with other added functionalities, likely account for the increased RAM footprint.
+
+### Comparison of CPU clocks
+Comparison of the maximum clock speeds achievable by the different CPU cores.
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th colspan="4">Quad-core ARM Cortex-A55</th>
+            <th colspan="4">Quad-core ARM Cortex-A76</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td>Core0</td>
+            <td>Core1</td>
+            <td>Core2</td>
+            <td>Core3</td>
+            <td>Core4</td>
+            <td>Core5</td>
+            <td>Core6</td>
+            <td>Core7</td>
+        </tr>
+        <tr>
+            <td>OpenWrt v24.10.2</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>2400 MHz</td>
+            <td>2400 MHz</td>
+            <td>2400 MHz</td>
+            <td>2400 MHz</td>
+        </tr>
+        <tr>
+            <td>FriendlyWrt v24.10.2</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>1800 MHz</td>
+            <td>2304 MHz</td>
+            <td>2304 MHz</td>
+            <td>2256 MHz</td>
+            <td>2256 MHz</td>
+        </tr>
+    </tbody>
+</table>
+
+Oddly, the Cortex-A76 cores under FriendlyWrt reach a maximum clock speed about 100 to 150 MHz lower. While I suspect this is a conscious effort by FriendlyElec to improve system stability, I never encountered any problems running OpenWrt with the `scaling_governor` set to `performance` on all cores for a full year.
+
+### OpenSSL performance comparison
+The Rockchip RK3588S comes equipped with 2 dedicated cipher engines on SoC and the ARMv8 Cryptography Extensions on all eight cores. I'm not clear on which of these hardware accelerators FriendlyWrt actually uses, or if they even rely on specific opkg packages to run. So, to check for any performance impact, I ran OpenSSL benchmarks both before and after the debloat.  
+Specifically, I executed the benchmarks suggested on the OpenWrt Wiki page: https://openwrt.org/docs/guide-user/perf_and_log/benchmark.openssl  
+
+<details>
+  <summary><font size="4" color="darkred"><b><code>openssl_multi_core_benchmark.sh</code></b></font></summary>
+    
+  ```bash
+  CPUCoreCount=$(grep -c ^processor /proc/cpuinfo); W='\033[0;37m' ; G='\033[0;32m' ; 
+  #CPUCoreCount=2
+  openssl speed -multi $CPUCoreCount md5 sha1 sha256 sha512 des des-ede3 aes-128-cbc aes-192-cbc aes-256-cbc rsa2048 dsa2048 | tee /tmp/sslspeedm
+  . /etc/os-release; echo -e "\n\n${G}"\
+  $(awk -v "rev=${BUILD_ID%%-*}" -v "FS=: " -v "ORS=" -v "CC=$CPUCoreCount" -e 'BEGIN \
+      {print "| " rev " -multi " CC " "} !a[$0]++ && /(Processor|Hardware|machine|cpu model|system type|BogoMIPS)/ \
+      {print "| " $2 " "}' /proc/cpuinfo) \
+  $(awk -v "ORS=" -e '$1 ~ /OpenSSL/ {print "| " $2 " |"} $1 ~ /version/ {print "| " $2 " |"} $1 ~ /(md5|sha)/ \
+      {print "  " $5 " | "} $1 ~ /(des|aes)/ {b = b "  " $6 " |"} $1 ~ /(rsa|dsa)/ \
+      {print b " " $6 " | " $7 " | ";b=""}' /tmp/sslspeedm \
+  | sed -e 's/\.\(..\)k/\10/g') ;  echo -e "\n${W}"
+  ```
+</details>
+
+|                                          | Performance | MD5            | SHA-1          | SHA-256        | SHA-512        | DES          | 3DES         | AES-128         | AES-192         | AES-256        | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
+|------------------------------------------|-------------|----------------|----------------|----------------|----------------|--------------|--------------|-----------------|-----------------|----------------|----------|------------|----------|------------|
+| OpenWrt v24.10.2                         |             | 2˙008˙902˙660  | 5˙821˙030˙740  | 5˙778˙099˙200  | 1˙774˙799˙190  | 351˙029˙930  | 126˙123˙280  | 12˙984˙044˙200  | 10˙354˙715˙310  | 8˙737˙633˙620  | 1˙775.4  | 65˙440.9   | 4˙771.4  | 5˙156.5    |
+| FriendlyWrt v24.10.2 <br> before debloat | -1.45%      | 1˙981˙066˙580  | 5˙739˙997˙870  | 5˙695˙847˙770  | 1˙750˙326˙610  | 347˙570˙180  | 124˙843˙350  | 12˙777˙944˙410  | 10˙203˙837˙780  | 8˙613˙380˙100  | 1˙750.5  | 64˙507.1   | 4˙701.4  | 5˙029.1    |
+| FriendlyWrt v24.10.2 <br> after debloat  | -0.99%      | 1˙988˙575˙910  | 5˙807˙186˙600  | 5˙746˙497˙880  | 1˙809˙317˙210  | 347˙302˙570  | 124˙900˙690  | 12˙788˙752˙380  | 10˙208˙826˙710  | 8˙617˙994˙920  | 1˙752.3  | 64˙558.7   | 4˙704.4  | 5˙022.5    |
+
+<details>
+  <summary><font size="4" color="darkred"><b><code>openssl_single_core_benchmark.sh</code></b></font></summary>
+  
+  ```bash
+  W='\033[0;37m' ; G='\033[0;32m' 
+  openssl speed md5 sha1 sha256 sha512 des des-ede3 aes-128-cbc aes-192-cbc aes-256-cbc rsa2048 dsa2048 | tee /tmp/sslspeed
+  . /etc/os-release; echo -e "\n\n${G}"\
+  $(awk -v "rev=${BUILD_ID%%-*}" -v "FS=: " -v "ORS=" -e 'BEGIN \
+      {print "| " rev " single-thread "} !a[$0]++ && /(Processor|Hardware|machine|cpu model|system type|BogoMIPS)/ \
+	  {print "| " $2 " "}' /proc/cpuinfo) \
+  $(awk -v "ORS=" -e '$1 ~ /OpenSSL/ {print "| " $2 " |"} $1 ~ /version/ {print "| " $2 " |"} $1 ~ /(md5|sha)/ \
+      {print "  " $5 " | "} $1 ~ /(des|aes)/ {b = b "  " $6 " |"} $1 ~ /(rsa|dsa)/ \
+      {print b " " $6 " | " $7 " | ";b=""}' /tmp/sslspeed \
+  | sed -e 's/\.\(..\)k/\10/g') ;  echo -e "\n${W}"
+  ```
+</details>
+
+|                                          | Performance | MD5         | SHA-1       | SHA-256       | SHA-512     | DES        | 3DES       | AES-128       | AES-192       | AES-256       | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
+|------------------------------------------|-------------|-------------|-------------|---------------|-------------|------------|------------|---------------|---------------|---------------|----------|------------|----------|------------|
+| OpenWrt v24.10.2                         |             | 331˙024˙380 | 994˙357˙080 | 1˙006˙681˙430 | 303˙256˙570 | 61˙609˙300 | 22˙487˙040 | 1˙840˙431˙100 | 1˙539˙750˙790 | 1˙315˙804˙500 | 271.3    | 9˙888.1    | 725.4    | 771.1      |
+| FriendlyWrt v24.10.2 <br> before debloat | -0.01%      | 330˙423˙980 | 988˙607˙150 | 1˙001˙367˙550 | 301˙067˙950 | 61˙620˙220 | 22˙487˙040 | 1˙840˙966˙310 | 1˙534˙817˙620 | 1˙316˙072˙110 | 271.4    | 9˙889.3    | 725.4    | 786.9      |
+| FriendlyWrt v24.10.2 <br> after debloat  | +0.20%      | 331˙119˙960 | 997˙795˙160 | 1˙008˙029˙700 | 309˙240˙490 | 61˙704˙870 | 22˙487˙040 | 1˙840˙283˙650 | 1˙534˙361˙600 | 1˙315˙646˙120 | 271.3    | 9˙892.4    | 725.2    | 773.4      |
+
+The benchmark results are almost identical both before and after the debloat process, with a slight improvement observed after debloating. It's worth noting that the `openssl_multi_core_benchmark.sh` benchmark recorded a performance decrease of about -1% when run on FriendlyWrt compared to OpenWrt. This is likely attributable to a lower clock speed on the four Cortex-A76 cores under FriendlyWrt.
+
+In any case, I can confirm that the debloat procedure did not have a negative impact on OpenSSL performance.
+
+## [BEFORE DEBLOAT] Switch back to the OpenWrt shell
 
 > [!CAUTION]
 > After the cleanup, the LuCI interface will break (which we will fix later) and the `bash` shell (SSH) will be uninstalled, meaning you will lose the ability to interact with FriendlyWrt.  
@@ -25,10 +133,8 @@ Edit the `/etc/passwd` file:
 2. Find a line that contain `...bin/bash` and change it to `...bin/ash`
 3. Save and close with `:wq`
 
-## Uninstall unnecessary `opkg` packages
-
-After listing all pre-installed packages in OpenWrt v24.10.2 and FriendlyWrt v24.10.2, I compared the lists to identify all `opkg` packages unique to FriendlyWrt v24.10.2, and subsequently uninstalled them.  
-Follow these steps to uninstall unnecessary packages:
+## [DEBLOAT] Uninstall unnecessary `opkg` packages
+Here are the steps to follow to uninstall all unnecessary packages from FriendlyWrt v24.10.2.
 1. `vim opkg_uninstall.sh`
 2. Paste this massive command:
     ```bash
@@ -49,8 +155,7 @@ Two packages must not be uninstalled:
 - `luci-lib-fs`: This package is not included in standard OpenWrt, but it seems vital for the FriendlyWrt LuCI interface to work correctly. Crucially, if you uninstall it, you won't be able to get it back, as it is missing from the package repository.
 - `libustream-openssl20201210`: FriendlyWrt replaced Mbed TLS with OpenSSL, which makes sense because Mbed TLS is designed for truly low-end platforms with limited memory at the expense of speed performance. OpenSSL, while using more memory (which is not an issue with the NanoPi R6S, as we have 8GiB of RAM), offers higher speed performance. Therefore, I decided to keep `libustream-openssl20201210` instead of reverting to the official package, `libustream-mbedtls20201210`.
 
-## Install some essentials `opkg`s
-
+### Install some essentials `opkg`s
 Install two packages:
 1. `luci-compat`: Not being a standard OpenWrt package, it was automatically removed as an orphan during a system cleanup. However, it seems this package is actually needed to resolve the broken LuCI interface. The FriendlyWrt LuCI setup, unlike the standard version, appears to be dependent on `luci-compat` for correct operation.
 2. `dnsmasq`: This is the official package found in OpenWrt. FriendlyWrt replaced it with the full version, `dnsmasq-full` (which you just uninstalled), so by installing `dnsmasq` we revert back to the original one.
@@ -73,7 +178,7 @@ opkg install htop libsensors5 block-mount
 
 ## How did I identify the unnecessary packages?
 
-This section explains the method used to determine which packages added by FriendlyWrt are not part of the standard OpenWrt installation.
+After listing all pre-installed packages in OpenWrt v24.10.2 and FriendlyWrt v24.10.2, I compared the lists to identify all `opkg` packages unique to FriendlyWrt v24.10.2, and subsequently uninstalled them.  
 
 > [!NOTE]
 > This paragraph is here only in case I need to generate a new list of packages to remove with a new version of FriendlyWrt.
