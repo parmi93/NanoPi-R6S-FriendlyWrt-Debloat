@@ -165,6 +165,9 @@ opkg update
 opkg install luci-compat dnsmasq
 ```
 
+> [!NOTE]
+> If this command fails, make sure that the NanoPi's date/time are correct.
+
 ## [OPTIONAL] Install some usefull package
 
 I found a few particularly useful packages:
