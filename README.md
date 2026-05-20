@@ -64,7 +64,13 @@ Comparison of the maximum clock speeds achievable by the different CPU cores.
     </tbody>
 </table>
 
-Oddly, the Cortex-A76 cores under FriendlyWrt reach a maximum clock speed about 100 to 150 MHz lower. While I suspect this is a conscious effort by FriendlyElec to improve system stability, I never encountered any problems running OpenWrt with the `scaling_governor` set to `performance` on all cores for a full year.
+The Cortex-A76 cores running FriendlyWrt reach a maximum clock frequency that is approximately 100 to 150 MHz lower than with OpenWrt. This behavior is intentional in FriendlyWrt, which uses an advanced frequency scaling method that takes into account factors such as silicon quality, allowing it to achieve maximum CPU performance without sacrificing system stability.
+
+OpenWrt, or more precisely the upstream Linux kernel, does not take these parameters into account, allowing the CPU to reach its theoretical maximum clock frequencies. Apparently, there are plans to implement the same mechanism in the official Linux kernel as well.
+
+See this article for more details: https://www.collabora.com/news-and-blog/news-and-events/rockchip-rk3588-upstream-support-progress-future-plans.html
+
+That said, personally I have never encountered any issues with OpenWrt while running the `scaling_governor` set to `performance` on all cores for an entire year.
 
 ### OpenSSL performance comparison
 The Rockchip RK3588S comes equipped with 2 dedicated cipher engines on SoC and the ARMv8 Cryptography Extensions on all eight cores. I'm not clear on which of these hardware accelerators FriendlyWrt actually uses, or if they even rely on specific opkg packages to run. So, to check for any performance impact, I ran OpenSSL benchmarks both before and after the debloat.  
