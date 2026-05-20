@@ -1,6 +1,6 @@
-# NanoPi R6S FriendlyWrt v24.10.2 Debloat
+# NanoPi R6S FriendlyWrt 24.10.2 Debloat
 
-**NanoPi R6S FriendlyWrt v24.10.2 Debloat Guide.** A script and guide to identify and safely remove all non-official/non-stock OpenWrt opkg packages installed by FriendlyWrt on the NanoPi R6S. Restore a cleaner, leaner OpenWrt environment while keeping core system functionality.
+**NanoPi R6S FriendlyWrt 24.10.2 Debloat Guide.** A script and guide to identify and safely remove all non-official/non-stock OpenWrt opkg packages installed by FriendlyWrt on the NanoPi R6S. Restore a cleaner, leaner OpenWrt environment while keeping core system functionality.
 
 > [!NOTE]
 > This guide is primarily written for my own future reference, in case I need to perform this procedure again.
@@ -9,11 +9,11 @@
 
 ### Comparison of Memory Usage
 Comparison of the number of pre-installed packages and RAM usage after a clean installation of FriendlyWrt and OpenWrt
-|                                       | No. OPKGs | RAM Usage |
-|---------------------------------------|-----------|-----------|
-| OpenWrt v24.10.2                      | 128       | ~93 MiB   |
-| Friendly v24.10.2 <br> before debloat | 1080      | ~405 MiB  |
-| Friendly v24.10.2 <br> after debloat  | 134       | ~275 MiB  |
+|                                      | No. OPKGs | RAM Usage |
+|--------------------------------------|-----------|-----------|
+| OpenWrt 24.10.2                      | 128       | ~93 MiB   |
+| Friendly 24.10.2 <br> before debloat | 1080      | ~405 MiB  |
+| Friendly 24.10.2 <br> after debloat  | 134       | ~275 MiB  |
 
 While the debloating process successfully reduces RAM usage by about **130 MiB** by **uninstalling 946 opkgs**, the consumption is still roughly **180 MiB higher** than OpenWrt's baseline. I believe this difference is due to the extra features baked into FriendlyWrt BSP Kernel. Specifically, FriendlyWrt supports hardware-accelerated video transcoding via the **Rockchip VPU (RKMPP)**, includes **native NTFS filesystem support**, and provides shell support via HDMI display. These, along with other added functionalities, likely account for the increased RAM footprint.
 
@@ -40,7 +40,7 @@ Comparison of the maximum clock speeds achievable by the different CPU cores.
             <td>Core7</td>
         </tr>
         <tr>
-            <td>OpenWrt v24.10.2</td>
+            <td>OpenWrt 24.10.2</td>
             <td>1800 MHz</td>
             <td>1800 MHz</td>
             <td>1800 MHz</td>
@@ -51,7 +51,7 @@ Comparison of the maximum clock speeds achievable by the different CPU cores.
             <td>2400 MHz</td>
         </tr>
         <tr>
-            <td>FriendlyWrt v24.10.2</td>
+            <td>FriendlyWrt 24.10.2</td>
             <td>1800 MHz</td>
             <td>1800 MHz</td>
             <td>1800 MHz</td>
@@ -94,11 +94,11 @@ Specifically, I executed the benchmarks suggested on the OpenWrt Wiki page: http
   ```
 </details>
 
-|                                          | Performance <br> (compared to OpenWrt) | MD5            | SHA-1          | SHA-256        | SHA-512        | DES          | 3DES         | AES-128         | AES-192         | AES-256        | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
-|------------------------------------------|----------------------------------------|----------------|----------------|----------------|----------------|--------------|--------------|-----------------|-----------------|----------------|----------|------------|----------|------------|
-| OpenWrt v24.10.2                         |                                        | 2˙008˙902˙660  | 5˙821˙030˙740  | 5˙778˙099˙200  | 1˙774˙799˙190  | 351˙029˙930  | 126˙123˙280  | 12˙984˙044˙200  | 10˙354˙715˙310  | 8˙737˙633˙620  | 1˙775.4  | 65˙440.9   | 4˙771.4  | 5˙156.5    |
-| FriendlyWrt v24.10.2 <br> before debloat | -1.45%                                 | 1˙981˙066˙580  | 5˙739˙997˙870  | 5˙695˙847˙770  | 1˙750˙326˙610  | 347˙570˙180  | 124˙843˙350  | 12˙777˙944˙410  | 10˙203˙837˙780  | 8˙613˙380˙100  | 1˙750.5  | 64˙507.1   | 4˙701.4  | 5˙029.1    |
-| FriendlyWrt v24.10.2 <br> after debloat  | -0.99%                                 | 1˙988˙575˙910  | 5˙807˙186˙600  | 5˙746˙497˙880  | 1˙809˙317˙210  | 347˙302˙570  | 124˙900˙690  | 12˙788˙752˙380  | 10˙208˙826˙710  | 8˙617˙994˙920  | 1˙752.3  | 64˙558.7   | 4˙704.4  | 5˙022.5    |
+|                                         | Performance <br> (compared to OpenWrt) | MD5            | SHA-1          | SHA-256        | SHA-512        | DES          | 3DES         | AES-128         | AES-192         | AES-256        | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
+|-----------------------------------------|----------------------------------------|----------------|----------------|----------------|----------------|--------------|--------------|-----------------|-----------------|----------------|----------|------------|----------|------------|
+| OpenWrt 24.10.2                         |                                        | 2˙008˙902˙660  | 5˙821˙030˙740  | 5˙778˙099˙200  | 1˙774˙799˙190  | 351˙029˙930  | 126˙123˙280  | 12˙984˙044˙200  | 10˙354˙715˙310  | 8˙737˙633˙620  | 1˙775.4  | 65˙440.9   | 4˙771.4  | 5˙156.5    |
+| FriendlyWrt 24.10.2 <br> before debloat | -1.45%                                 | 1˙981˙066˙580  | 5˙739˙997˙870  | 5˙695˙847˙770  | 1˙750˙326˙610  | 347˙570˙180  | 124˙843˙350  | 12˙777˙944˙410  | 10˙203˙837˙780  | 8˙613˙380˙100  | 1˙750.5  | 64˙507.1   | 4˙701.4  | 5˙029.1    |
+| FriendlyWrt 24.10.2 <br> after debloat  | -0.99%                                 | 1˙988˙575˙910  | 5˙807˙186˙600  | 5˙746˙497˙880  | 1˙809˙317˙210  | 347˙302˙570  | 124˙900˙690  | 12˙788˙752˙380  | 10˙208˙826˙710  | 8˙617˙994˙920  | 1˙752.3  | 64˙558.7   | 4˙704.4  | 5˙022.5    |
 
 <details>
   <summary><font size="4" color="darkred"><b><code>openssl_single_core_benchmark.sh</code></b></font></summary>
@@ -117,11 +117,11 @@ Specifically, I executed the benchmarks suggested on the OpenWrt Wiki page: http
   ```
 </details>
 
-|                                          | Performance <br> (compared to OpenWrt) | MD5         | SHA-1       | SHA-256       | SHA-512     | DES        | 3DES       | AES-128       | AES-192       | AES-256       | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
-|------------------------------------------|----------------------------------------|-------------|-------------|---------------|-------------|------------|------------|---------------|---------------|---------------|----------|------------|----------|------------|
-| OpenWrt v24.10.2                         |                                        | 331˙024˙380 | 994˙357˙080 | 1˙006˙681˙430 | 303˙256˙570 | 61˙609˙300 | 22˙487˙040 | 1˙840˙431˙100 | 1˙539˙750˙790 | 1˙315˙804˙500 | 271.3    | 9˙888.1    | 725.4    | 771.1      |
-| FriendlyWrt v24.10.2 <br> before debloat | -0.01%                                 | 330˙423˙980 | 988˙607˙150 | 1˙001˙367˙550 | 301˙067˙950 | 61˙620˙220 | 22˙487˙040 | 1˙840˙966˙310 | 1˙534˙817˙620 | 1˙316˙072˙110 | 271.4    | 9˙889.3    | 725.4    | 786.9      |
-| FriendlyWrt v24.10.2 <br> after debloat  | +0.20%                                 | 331˙119˙960 | 997˙795˙160 | 1˙008˙029˙700 | 309˙240˙490 | 61˙704˙870 | 22˙487˙040 | 1˙840˙283˙650 | 1˙534˙361˙600 | 1˙315˙646˙120 | 271.3    | 9˙892.4    | 725.2    | 773.4      |
+|                                         | Performance <br> (compared to OpenWrt) | MD5         | SHA-1       | SHA-256       | SHA-512     | DES        | 3DES       | AES-128       | AES-192       | AES-256       | RSA Sign | RSA Verify | DSA Sign | DSA Verify |
+|-----------------------------------------|----------------------------------------|-------------|-------------|---------------|-------------|------------|------------|---------------|---------------|---------------|----------|------------|----------|------------|
+| OpenWrt 24.10.2                         |                                        | 331˙024˙380 | 994˙357˙080 | 1˙006˙681˙430 | 303˙256˙570 | 61˙609˙300 | 22˙487˙040 | 1˙840˙431˙100 | 1˙539˙750˙790 | 1˙315˙804˙500 | 271.3    | 9˙888.1    | 725.4    | 771.1      |
+| FriendlyWrt 24.10.2 <br> before debloat | -0.01%                                 | 330˙423˙980 | 988˙607˙150 | 1˙001˙367˙550 | 301˙067˙950 | 61˙620˙220 | 22˙487˙040 | 1˙840˙966˙310 | 1˙534˙817˙620 | 1˙316˙072˙110 | 271.4    | 9˙889.3    | 725.4    | 786.9      |
+| FriendlyWrt 24.10.2 <br> after debloat  | +0.20%                                 | 331˙119˙960 | 997˙795˙160 | 1˙008˙029˙700 | 309˙240˙490 | 61˙704˙870 | 22˙487˙040 | 1˙840˙283˙650 | 1˙534˙361˙600 | 1˙315˙646˙120 | 271.3    | 9˙892.4    | 725.2    | 773.4      |
 
 The benchmark results are almost identical both before and after the debloat process, with a slight improvement observed after debloating. It's worth noting that the `openssl_multi_core_benchmark.sh` benchmark recorded a performance decrease of about -1% when run on FriendlyWrt compared to OpenWrt. This is likely attributable to a lower clock speed on the four Cortex-A76 cores under FriendlyWrt.
 
@@ -143,7 +143,7 @@ Edit the `/etc/passwd` file:
 3. Save and close with `:wq`
 
 ## [DEBLOAT] Uninstall unnecessary `opkg` packages
-Here are the steps to follow to uninstall all unnecessary packages from FriendlyWrt v24.10.2.
+Here are the steps to follow to uninstall all unnecessary packages from FriendlyWrt 24.10.2.
 1. Create the uninstall script:
    ```bash
    vim opkg_uninstall.sh
@@ -199,7 +199,7 @@ opkg install htop libsensors5 block-mount
 
 ## How did I identify the unnecessary packages?
 
-After listing all pre-installed packages in OpenWrt v24.10.2 and FriendlyWrt v24.10.2, I compared the lists to identify all `opkg` packages unique to FriendlyWrt v24.10.2, and subsequently uninstalled them.  
+After listing all pre-installed packages in OpenWrt 24.10.2 and FriendlyWrt 24.10.2, I compared the lists to identify all `opkg` packages unique to FriendlyWrt 24.10.2, and subsequently uninstalled them.  
 
 > [!NOTE]
 > This paragraph is here only in case I need to generate a new list of packages to remove with a new version of FriendlyWrt.
