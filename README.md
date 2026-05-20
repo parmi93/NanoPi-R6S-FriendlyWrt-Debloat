@@ -157,7 +157,7 @@ Here are the steps to follow to uninstall all unnecessary packages from Friendly
     ```bash
 	chmod +x opkg_uninstall.sh
 	```
-5. Excecute to unistall: 
+5. Excecute to uninstall: 
     ```bash
 	./opkg_uninstall.sh
 	```
